@@ -1,9 +1,9 @@
 class Player
+{
+    constructor(nr)
     {
-        constructor(nr)
-        {
-            this.score = 0;
-            this.playername = "Player " + nr;
-            this.scored = false;
-        }
+        this.score = 0;
+        this.playername = "Player " + nr;
+        this.scored = false;
     }
+}

@@ -4,7 +4,6 @@ function setup()
   draw();
 }
 
-
 // set the scene size
 var WIDTH = 640,
 HEIGHT = 360;
@@ -73,8 +72,6 @@ for (var i = 0; i < 16; i++)
         balls.push(ball);
         scene.add(ball.ballmesh);
     }
-
-//balls[0].Speedx = 1;
 var ballslength = balls.length;
 
 //-- HOLES ---
@@ -90,37 +87,16 @@ var holes = [hole1, hole2, hole3, hole4, hole5, hole6];
 // ----LIGHTPOINT --
 pointLight = new THREE.PointLight(0xF8D898);
 
-// set its position
 pointLight.position.x = 0;
 pointLight.position.y = 0;
 pointLight.position.z = 275;
 pointLight.intensity = 1.3;
 pointLight.distance = 10000;
 
-// add to the scene
 scene.add(pointLight);
 
-// ---PLANE --
-var planeMaterial =
-new THREE.MeshLambertMaterial(
-{
-    color: 0x4BD121
-});
-
-var planeWidth = 400,
-    planeHeight = 200,
-    planeQuality = 10;
-
-// create the playing surface plane
-var plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(
-    planeWidth * 0.95,	// 95% of table width, since we want to show where the ball goes out-of-bounds
-    planeHeight,
-    planeQuality,
-    planeQuality),
-    planeMaterial);
-
 //--- BOX PLANE --
+// for the table with holes and dark box underneath
 var underbox = new THREE.Mesh( new THREE.BoxGeometry( 400, 200, 0.2 ) );
 underbox.material = undersheetmaterial;
 underbox.position.z = -8;
@@ -132,7 +108,6 @@ var cutgeo = new THREE.SphereGeometry( radius + 5, 0, 0 );
 
 var coordinates = [[-190,-90,0],[190,0,0], [190,0,0],[0,180,0],[-190,0,0], [-190,0,0]]
 var result;
-
 
 for (var i = 0; i < 6; i ++)
 {
@@ -146,24 +121,16 @@ for (var i = 0; i < 6; i ++)
     var substract_bsp  = new ThreeBSP( sub );
     var subtract_bsp  = cube_bsp.subtract( substract_bsp );
     cube_bsp = subtract_bsp;
-
+    
     result = subtract_bsp.toMesh(); 
 }
 
-    result.geometry.computeVertexNormals();
-	var ceilingMaterial = new THREE.MeshPhongMaterial ( {
-			color:0x4BD121, 
-        	shading: THREE.FlatShading,
-		} );
-//    var sheetmaterial = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('textures/green_sheet.jpg') } );
-    
-    result.material = sheetmaterial;
-    
-    scene.add( result );
-result.position.z = -6;
+result.geometry.computeVertexNormals();
+var ceilingMaterial = new THREE.MeshPhongMaterial ( { color:0x4BD121,  shading: THREE.FlatShading,} );
+result.material = sheetmaterial;
 
-//scene.add(plane);
-plane.position.z = -6;
+scene.add( result );
+result.position.z = -6;
 
 //-- BORDERS ---
 var border = new THREE.Mesh( new THREE.BoxGeometry( 390, 10, 10 ) );
@@ -185,7 +152,6 @@ border.position.x = 200;
 border.position.z = -2;
 
 var border = new THREE.Mesh( new THREE.BoxGeometry( 10, 210, 10 ) );
-//border.material = ceilingMaterial;
 border.material = woodmaterial;
 scene.add(border);
 border.position.x = -200;
@@ -195,24 +161,25 @@ border.position.z = -2;
 var cyl_width = 5;
 var cyl_height = 150;
 var cylGeometry = new THREE.CylinderGeometry(cyl_width, 1, cyl_height, 20, 1, false);
-// translate the cylinder geometry so that the desired point within the geometry is now at the origin
 cylGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, cyl_height/2, 0 ) );
 var cylinder = new THREE.Mesh(cylGeometry, woodmaterial);
 cylinder.rotation.z = Math.PI/2;
 cylinder.rotation.y = Math.PI/8;
+//add to the white ball
 var pivot = new THREE.Object3D();
 balls[0].ballmesh.add(pivot);
 pivot.add( cylinder );
 
+//states of the game
 var movingballsstate = false;
-var rotationresetstate = true;
+var newturnstate = true;
+//number of times A/D keys clicked
 var clicks = 0;
 
 //--- BACKGROUND IMAGE --
 // Load the background texture
 var backgroundmaterial = new THREE.MeshBasicMaterial({map: textureLoader.load('textures/WP_20161016_027.jpg')});
-var backgroundMesh = new THREE.Mesh(
-new THREE.PlaneGeometry(2, 2, 0), backgroundmaterial);
+var backgroundMesh = new THREE.Mesh( new THREE.PlaneGeometry(2, 2, 0), backgroundmaterial);
 
 backgroundMesh.material.depthTest = false;
 backgroundMesh.material.depthWrite = false;
@@ -227,9 +194,9 @@ backgroundScene .add(backgroundMesh );
 //Constant herhalende functie.
 function draw()
 {
-// attach the render-supplied DOM element (the gameCanvas)
-var c = document.getElementById("gameCanvas");
-c.appendChild(renderer.domElement);
+    // attach the render-supplied DOM element (the gameCanvas)
+    var c = document.getElementById("gameCanvas");
+    c.appendChild(renderer.domElement);
     // draw THREE.JS scene
     renderer.render(scene, camera);
     
@@ -240,7 +207,7 @@ c.appendChild(renderer.domElement);
     renderer.render(scene, camera);
     
     // begin new turn
-    if (!(movingballsstate) && rotationresetstate)
+    if (!(movingballsstate) && newturnstate)
     {
         if (balls[0].Positionx == 1000 && balls[0].Positiony == 1000)
             {
@@ -257,22 +224,9 @@ c.appendChild(renderer.domElement);
         balls[0].Speedx = 1;
         balls[0].Speedy = 0;
         cylinder.visible = true;
-//        cylinder.rotation.z = Math.PI/2; ;
         balls[0].ballmesh.rotation.z = 0; 
-        rotationresetstate = false;
+        newturnstate = false;
         clicks = 0;
-        
-        for (x = 0; x < balls.length; x++)
-            {
-                if (balls[x].collision.length != 0)
-                    {
-                        console.log(balls[x].collision + " " + x);
-                    }
-                else
-                    {
-                        console.log("no problems with ballnr: " + x);
-                    }
-            }
             
         // camera position //
         if (balls[0].Positionx <= -25)
@@ -288,14 +242,14 @@ c.appendChild(renderer.domElement);
             camera.rotation.y = 60 * Math.PI/180;
         }
     }
-    
+    // checks if space key is down or D key
     if (Key.isDown(Key.SPACE) && !movingballsstate)	
     {
         balls[0].Speedx *= 5; 
         balls[0].Speedy *= 5; 
         movingballsstate = true;
     }
-    
+    // checks if A key is down or D key
     if ((Key.isDown(Key.A) || Key.isDown(Key.D)) && !movingballsstate)	
     {
         balls[0].Speedx = Math.cos( clicks );
@@ -311,7 +265,7 @@ c.appendChild(renderer.domElement);
             clicks += Math.PI/100;
         }
     }
-    
+    // Als de ball geschoten is
     if (movingballsstate)
         {
         cylinder.visible = false;
@@ -345,7 +299,7 @@ c.appendChild(renderer.domElement);
                     if (j == (ballslength - 1))
                         {
                             movingballsstate = false;
-                            rotationresetstate = true;
+                            newturnstate = true;
                             break;
                         }
                     j++;
@@ -368,11 +322,13 @@ function MoveBalls(ball, ballspeed, balltijd, boolx)
     {
         ballspeed -= Math.pow(((balltijd * ballspeed) * 0.0004),2);
     }
+    // checks if speed on x-as
     if (boolx)
     {
         ballspeed *= WallCollision(ball.Positionx, 191);
         ball.Positionx += ballspeed;
     }
+    // else speed is on y-as
     else
     {
         ballspeed *= WallCollision(ball.Positiony, 91);
@@ -382,7 +338,7 @@ function MoveBalls(ball, ballspeed, balltijd, boolx)
 }
 
 //--- BallenColission --
-//als er collission is veranderd de ballrichting en snelheid.
+//als er collission is met een ball. Veranderd de ballrichting en snelheid.
 function ballCollision(ball, nr)
 {
     for (i=0; i< ballslength; i++)
@@ -403,6 +359,7 @@ function ballCollision(ball, nr)
                         distance = Math.sqrt(
                         Math.pow((bal1posx - bal2posx),2) + Math.pow((bal1posy - bal2posy),2));
                         var incollision = balls[nr].CollisionWith(i);
+                        // extra collision check
                         if (distance < (radius + radius) && !(incollision))
                         {
                             distance *= distance;
@@ -438,7 +395,7 @@ function ballCollision(ball, nr)
 }
 
 //--- Wallcollision 
-//geeft negatieve waarde wanneer collission met de muur
+//geeft negatieve waarde wanneer collission met de muur.
 function WallCollision(ballposition, collsionposition)
 {
     if (ballposition > collsionposition || ballposition < -(collsionposition) )
@@ -449,7 +406,7 @@ function WallCollision(ballposition, collsionposition)
 }
 
 //--- holeCollision --
-//als er collission is met een hole.
+//Als er collission is met een hole.
 function holeCollision(ball, nr)
 {
     for (i=0; i<6; i++)
@@ -460,33 +417,31 @@ function holeCollision(ball, nr)
                         bal2posx = holes[i].Positionx;
                         
                         bal1posy = ball.Positiony;
-                        bal2posy = holes[i].Positiony;
-                        
-                        var xv = bal1posx - bal2posx;
-				        var zv = bal1posy - bal2posy;
-                        
+                        bal2posy = holes[i].Positiony; 
 
                         distance = Math.sqrt(
                         Math.pow((bal1posx - bal2posx),2) + Math.pow((bal1posy - bal2posy),2));
+                        // extra collision check
                         if (distance < (radius + radius))
                         {
                             if (nr != 0)
                             {
 	                            players[currentplayer].score++;
                                 players[currentplayer].scored = true;
-                            }
-                            
+                            } 
 	                       document.getElementById("scores").innerHTML = players[0].score + "-" + players[1].score;
-                            balls[nr].Positionx = 1000;
-                            balls[nr].Positiony = 1000;
-                            balls[nr].Speedx = 0;
-                            balls[nr].Speedy = 0;
-                            balls[nr].Time = 0;
+                           balls[nr].Positionx = 1000;
+                           balls[nr].Positiony = 1000;
+                           balls[nr].Speedx = 0;
+                           balls[nr].Speedy = 0;
+                           balls[nr].Time = 0;
                         }
                     }
         }
 }
 
+// --- checkCollision --
+//checkt collsion met ronde objecten.
 function checkCollision(ballcheck, roundcheck)
 {
     if(ballcheck.Positionx + radius + radius > roundcheck.Positionx 
