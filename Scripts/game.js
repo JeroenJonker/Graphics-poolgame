@@ -31,22 +31,17 @@ scene = new THREE.Scene();
 
 // add the camera to the scene
 scene.add(camera);
+camera.position.z = 100;
 
-// set a default position for the camera
-// not doing this somehow messes up shadow rendering
-camera.position.z = 320;
+//--- TEXTURE LOADER ---
+var textureLoader = new THREE.TextureLoader();
+var woodmaterial = new THREE.MeshPhongMaterial({map: textureLoader.load('textures/photos-2016-9-1-fst_840fcd2b47a-9065-4481-98e1-9d5d4f66b32e.jpg')});
+var sheetmaterial = new THREE.MeshPhongMaterial({map: textureLoader.load('textures/green_sheet.jpg')});
+var undersheetmaterial = new THREE.MeshPhongMaterial({color: 0x000000});
 
-
-//---PLAYER ---
-var score1 = 0;
-var score2 = 0;
+//---PLAYERS ---
 var players = [new Player(1), new Player(2)];
 var currentplayer = 1;
-
-for (var i = 0; i < 2; i++)
-    {
-       console.log(players[i]); 
-    }
 
 /* ----BALLS -- */
 // lower 'segment' and 'ring' values will increase performance
@@ -54,20 +49,7 @@ var radius = 5,
 segments = 6,
 rings = 6;
 
-//var ball1 = new Ball(0xffffff, -50,0);
-//var ball2 = new Ball(0xD43001, 9,0);
-//var ball3 = new Ball(0xD43001, 18,-7);
-//var ball4 = new Ball(0xD43001, 18,7);
-//var ball5 = new Ball(0xFFFF00, 27,0);
-//var ball6 = new Ball(0xFFFF00, 27,14);
-//var ball7 = new Ball(0xFFFF00, 27,-14);
-//var ball8 = new Ball(0xFFFF00, 36,7);
-//var ball9 = new Ball(0xFFFF00, 36,-7);
-//var ball10 = new Ball(0xFFFF00, 36,21);
-//var ball11 = new Ball(0xFFFF00, 36,-21);
-
-var initballlocations = [[-50,0],[9,0],[18,-7],[18,7],[27,0],[27,14],[27,-14],[36,7], [36,-7], [36,21],[36,-21],[45,0],[45,14],[45,-14],[45,28],[45,-28]];
-//var balls = [ball1, ball2, ball3, ball4, ball5, ball6, ball7, ball8, ball9, ball10, ball11];
+var initballlocations = [[-100,0],[50,0],[59,-7],[59,7],[68,0],[68,14],[68,-14],[77,7], [77,-7], [77,21],[77,-21],[86,0],[86,14],[86,-14],[86,28],[86,-28]];
 var balls =[];
 
 for (var i = 0; i < 16; i++)
@@ -92,10 +74,6 @@ for (var i = 0; i < 16; i++)
         scene.add(ball.ballmesh);
     }
 
-//for (i = 0; i < balls.length; i++)
-//    {
-//        scene.add(balls[i].ballmesh);
-//    }
 //balls[0].Speedx = 1;
 var ballslength = balls.length;
 
@@ -113,10 +91,10 @@ var holes = [hole1, hole2, hole3, hole4, hole5, hole6];
 pointLight = new THREE.PointLight(0xF8D898);
 
 // set its position
-pointLight.position.x = -1000;
+pointLight.position.x = 0;
 pointLight.position.y = 0;
-pointLight.position.z = 1000;
-pointLight.intensity = 2.9;
+pointLight.position.z = 275;
+pointLight.intensity = 1.3;
 pointLight.distance = 10000;
 
 // add to the scene
@@ -142,7 +120,11 @@ var plane = new THREE.Mesh(
     planeQuality),
     planeMaterial);
 
-//--- BBOX PLANE --
+//--- BOX PLANE --
+var underbox = new THREE.Mesh( new THREE.BoxGeometry( 400, 200, 0.2 ) );
+underbox.material = undersheetmaterial;
+underbox.position.z = -8;
+scene.add(underbox);
 var box = new THREE.Mesh( new THREE.BoxGeometry( 400, 200, 0.2 ) );
 var cube_bsp = new ThreeBSP( box );
 
@@ -173,8 +155,9 @@ for (var i = 0; i < 6; i ++)
 			color:0x4BD121, 
         	shading: THREE.FlatShading,
 		} );
+//    var sheetmaterial = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('textures/green_sheet.jpg') } );
     
-    result.material = ceilingMaterial;
+    result.material = sheetmaterial;
     
     scene.add( result );
 result.position.z = -6;
@@ -184,58 +167,61 @@ plane.position.z = -6;
 
 //-- BORDERS ---
 var border = new THREE.Mesh( new THREE.BoxGeometry( 390, 10, 10 ) );
-border.material = ceilingMaterial;
+border.material = woodmaterial;
 scene.add(border);
 border.position.y = 100;
+border.position.z = -2;
 
 var border = new THREE.Mesh( new THREE.BoxGeometry( 390, 10, 10 ) );
-border.material = ceilingMaterial;
+border.material = woodmaterial;
 scene.add(border);
 border.position.y = -100;
+border.position.z = -2;
 
 var border = new THREE.Mesh( new THREE.BoxGeometry( 10, 210, 10 ) );
-border.material = ceilingMaterial;
+border.material = woodmaterial;
 scene.add(border);
 border.position.x = 200;
+border.position.z = -2;
 
 var border = new THREE.Mesh( new THREE.BoxGeometry( 10, 210, 10 ) );
-border.material = ceilingMaterial;
+//border.material = ceilingMaterial;
+border.material = woodmaterial;
 scene.add(border);
 border.position.x = -200;
+border.position.z = -2;
 
 //-- KEU ---
-var cyl_material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
 var cyl_width = 5;
-var cyl_height = 50;
-// THREE.CylinderGeometry(bottomRadius, topRadius, height, segmentsRadius, segmentsHeight, openEnded )
+var cyl_height = 150;
 var cylGeometry = new THREE.CylinderGeometry(cyl_width, 1, cyl_height, 20, 1, false);
 // translate the cylinder geometry so that the desired point within the geometry is now at the origin
 cylGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, cyl_height/2, 0 ) );
-var cylinder = new THREE.Mesh(cylGeometry, cyl_material);
+var cylinder = new THREE.Mesh(cylGeometry, woodmaterial);
 cylinder.rotation.z = Math.PI/2;
-//cylinder.position.y = balls[0].Positiony;
-//cylinder.position.x = balls[0].Positionx;
-cylinder.rotation.y = Math.PI/6;
+cylinder.rotation.y = Math.PI/8;
 var pivot = new THREE.Object3D();
-//ball1.ballmesh.add(pivot);
 balls[0].ballmesh.add(pivot);
 pivot.add( cylinder );
-
-//	camera.position.x = ball1.Positionx - 350;
-//	camera.position.y += (ball1.Positiony - camera.position.y) * 0.05;
-//	camera.position.z = ball1.ballmesh.position.z + 100 + 0.04 * (-ball2.Positionx + ball1.Positionx);
-//
-//	// rotate to face towards the opponent
-//	camera.rotation.x = -0.01 * (ball2.Positiony) * Math.PI/180;
-//	camera.rotation.y = -60 * Math.PI/180;
-//	camera.rotation.z = -90 * Math.PI/180;
-
-//cameramultiplierx = 10;
-//cameramultipliery = -10;
 
 var movingballsstate = false;
 var rotationresetstate = true;
 var clicks = 0;
+
+//--- BACKGROUND IMAGE --
+// Load the background texture
+var backgroundmaterial = new THREE.MeshBasicMaterial({map: textureLoader.load('textures/WP_20161016_027.jpg')});
+var backgroundMesh = new THREE.Mesh(
+new THREE.PlaneGeometry(2, 2, 0), backgroundmaterial);
+
+backgroundMesh.material.depthTest = false;
+backgroundMesh.material.depthWrite = false;
+
+// Create your background scene
+var backgroundScene = new THREE.Scene();
+var backgroundCamera = new THREE.Camera();
+backgroundScene .add(backgroundCamera );
+backgroundScene .add(backgroundMesh );
 
 //--- DRAW ---
 //Constant herhalende functie.
@@ -247,20 +233,15 @@ c.appendChild(renderer.domElement);
     // draw THREE.JS scene
     renderer.render(scene, camera);
     
-//    camera.position.x = -260;
-//    camera.position.z = 100;
-//    camera.rotation.z = -90 * Math.PI/180;
-//    camera.rotation.y = -60 * Math.PI/180;
+    //background image //
+    renderer.autoClear = false;
+    renderer.clear();
+    renderer.render(backgroundScene , backgroundCamera );
+    renderer.render(scene, camera);
     
-//console.log(balls[0].collision);
-//    console.log(balls[2].collision);
-//    
-    
-//        camera.position.z = 10;
+    // begin new turn
     if (!(movingballsstate) && rotationresetstate)
     {
-//        cylinder.position.y = balls[0].Positiony;
-//        cylinder.position.x = balls[0].Positionx;
         if (balls[0].Positionx == 1000 && balls[0].Positiony == 1000)
             {
                 balls[0].Positionx = -50;
@@ -293,8 +274,19 @@ c.appendChild(renderer.domElement);
                     }
             }
             
-//        console.log(balls[0].Speedx);
-//        console.log(balls[0].Speedy);
+        // camera position //
+        if (balls[0].Positionx <= -25)
+        {
+            camera.position.x = -275;
+            camera.rotation.z = -90 * Math.PI/180;
+            camera.rotation.y = -60 * Math.PI/180;
+        }
+        if (balls[0].Positionx >= 25)
+        {
+            camera.position.x = 275;
+            camera.rotation.z = 90 * Math.PI/180;
+            camera.rotation.y = 60 * Math.PI/180;
+        }
     }
     
     if (Key.isDown(Key.SPACE) && !movingballsstate)	
@@ -304,20 +296,20 @@ c.appendChild(renderer.domElement);
         movingballsstate = true;
     }
     
-    if (Key.isDown(Key.A) && !movingballsstate)	
+    if ((Key.isDown(Key.A) || Key.isDown(Key.D)) && !movingballsstate)	
     {
         balls[0].Speedx = Math.cos( clicks );
         balls[0].Speedy = Math.sin( clicks );
-        balls[0].ballmesh.rotation.z -= Math.PI/100;    
-        clicks -= Math.PI/100;
-    }
-    
-    if (Key.isDown(Key.D) && !movingballsstate)	
-    {
-        balls[0].Speedx = Math.cos( clicks );
-        balls[0].Speedy = Math.sin( clicks );
-        balls[0].ballmesh.rotation.z += Math.PI/100 ;
-        clicks += Math.PI/100;
+        if (Key.isDown(Key.A))
+        {
+            balls[0].ballmesh.rotation.z -= Math.PI/100;    
+            clicks -= Math.PI/100;
+        }
+        else
+        {
+            balls[0].ballmesh.rotation.z += Math.PI/100 ;
+            clicks += Math.PI/100;
+        }
     }
     
     if (movingballsstate)
@@ -345,7 +337,6 @@ c.appendChild(renderer.domElement);
         
             for (j=0; j < ballslength; j++)
             {
-//                ballCollision(balls[j], j);
                 holeCollision(balls[j], j);
             }
             var j = 0;
@@ -370,23 +361,23 @@ c.appendChild(renderer.domElement);
 function MoveBalls(ball, ballspeed, balltijd, boolx)
 {
     if (ballspeed < 0)
-        {
-            ballspeed += Math.pow(((balltijd * ballspeed) * 0.0004),2);
-        }
+    {
+        ballspeed += Math.pow(((balltijd * ballspeed) * 0.0004),2);
+    }
     else if (ballspeed > 0)
-        {
+    {
         ballspeed -= Math.pow(((balltijd * ballspeed) * 0.0004),2);
-        }
+    }
     if (boolx)
-        {
-            ballspeed *= WallCollision(ball.Positionx, 191);
-            ball.Positionx += ballspeed;
-        }
+    {
+        ballspeed *= WallCollision(ball.Positionx, 191);
+        ball.Positionx += ballspeed;
+    }
     else
-        {
-            ballspeed *= WallCollision(ball.Positiony, 91);
-            ball.Positiony += ballspeed
-        }
+    {
+        ballspeed *= WallCollision(ball.Positiony, 91);
+        ball.Positiony += ballspeed
+    }
     return ballspeed;
 }
 
@@ -398,10 +389,7 @@ function ballCollision(ball, nr)
         {
             if (!(i == nr))
                 {
-                    if (ball.Positionx + radius + radius > balls[i].Positionx 
-                        && ball.Positionx < balls[i].Positionx + radius + radius
-                        && ball.Positiony + radius + radius > balls[i].Positiony 
-                        && ball.Positiony < balls[i].Positiony + radius + radius)
+                    if (checkCollision(ball, balls[i]))
                     {
                         bal1posx = ball.Positionx;
                         bal2posx = balls[i].Positionx;
@@ -431,14 +419,14 @@ function ballCollision(ball, nr)
                             balls[i].Collision.push(nr);
                         }
                         else if (distance < (radius + radius) && incollision)
-                            {
-                                continue;
-                            }
+                        {
+                             continue;
+                        }
                         else
-                            {
-                                balls[nr].RemoveElement(i);
-                                balls[i].RemoveElement(nr);
-                            }
+                        {
+                            balls[nr].RemoveElement(i);
+                            balls[i].RemoveElement(nr);
+                        }
                     }
                     else
                     {
@@ -466,10 +454,7 @@ function holeCollision(ball, nr)
 {
     for (i=0; i<6; i++)
         {
-                    if (ball.Positionx + radius + radius > holes[i].Positionx 
-                        && ball.Positionx < holes[i].Positionx + radius + radius
-                        && ball.Positiony + radius + radius > holes[i].Positiony 
-                        && ball.Positiony < holes[i].Positiony + radius + radius)
+            if (checkCollision(ball, holes[i]))
                     {
                         bal1posx = ball.Positionx;
                         bal2posx = holes[i].Positionx;
@@ -485,8 +470,6 @@ function holeCollision(ball, nr)
                         Math.pow((bal1posx - bal2posx),2) + Math.pow((bal1posy - bal2posy),2));
                         if (distance < (radius + radius))
                         {
-//                            balls[nr].ballmesh.visible = false;
-                            
                             if (nr != 0)
                             {
 	                            players[currentplayer].score++;
@@ -502,4 +485,16 @@ function holeCollision(ball, nr)
                         }
                     }
         }
+}
+
+function checkCollision(ballcheck, roundcheck)
+{
+    if(ballcheck.Positionx + radius + radius > roundcheck.Positionx 
+        && ballcheck.Positionx < roundcheck.Positionx + radius + radius
+        && ballcheck.Positiony + radius + radius > roundcheck.Positiony 
+        && ballcheck.Positiony < roundcheck.Positiony + radius + radius)
+    {
+        return true;
+    }
+    return false;
 }
