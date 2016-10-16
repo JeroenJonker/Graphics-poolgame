@@ -218,7 +218,7 @@ function draw()
         if (players[currentplayer].scored == false)
             {
                 currentplayer = (currentplayer + 1) % 2;
-                document.getElementById("player").innerHTML = players[currentplayer].playername;
+                document.getElementById("player").innerHTML = "Turn: " + players[currentplayer].playername;
             }
         players[currentplayer].scored = false;
         balls[0].Speedx = 1;
